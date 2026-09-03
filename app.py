@@ -7,10 +7,7 @@ st.set_page_config(page_title="Hardware Diagnostic System", page_icon="🔬")
 st.title("🔬 Phone Board IC Diagnostic System")
 st.write("Motherboard photo එකක් upload කර පද්ධතිය මගින් Storage IC විස්තර පරීක්ෂා කරන්න.")
 
-# භාෂාව තේරීම
 language = st.radio("Language / භාෂාව තෝරන්න:", ["English", "සිංහල"], horizontal=True)
-
-# API Key එක Enter කිරීමට Box එක
 api_key_input = st.text_input("Enter your Gemini API Key:", type="password", help="ඔයාගේ Gemini API Key එක මෙතැනට ඇතුළත් කරන්න.")
 
 uploaded_file = st.file_uploader("Board photo එකක් තෝරන්න...", type=["jpg", "jpeg", "png"])
@@ -56,20 +53,18 @@ if uploaded_file:
                     
                     response = None
                     last_error = None
-                    max_attempts = 3  # Server Busy වුණොත් ස්වයංක්‍රීයව උත්සාහ කරන වාර ගණන
                     
-                    for attempt in range(max_attempts):
+                    # Google API එකෙන් ඉල්ලන එකම නිවැරදි Model Name එක
+                    for attempt in range(3):
                         try:
-                            # Gemini 2.5 Flash Model එක භාවිතා කිරීම
                             response = client.models.generate_content(
-                                model='gemini-2.5-flash',
+                                model='gemini-3.6-flash',
                                 contents=[prompt, image]
                             )
                             if response and response.text:
-                                break  # සාර්ථක වූ සැනින් Loop එකෙන් පිටවේ
+                                break
                         except Exception as err:
                             last_error = err
-                            # Server Busy (503) නම් තත්පර 2ක් ඉඳලා ස්වයංක්‍රීයව නැවත උත්සාහ කරයි
                             time.sleep(2)
 
                     if response and response.text:
@@ -82,3 +77,4 @@ if uploaded_file:
                     st.error(f"Initialization Error: {e}")
     else:
         st.warning("කරුණාකර IC පරීක්ෂා කිරීමට ප්‍රථම Gemini API Key එක ඇතුළත් කරන්න.")
+

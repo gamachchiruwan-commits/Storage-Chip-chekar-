@@ -6,10 +6,10 @@ st.set_page_config(page_title="Hardware Diagnostic System", page_icon="🔬")
 st.title("🔬 Phone Board IC Diagnostic System")
 st.write("Motherboard photo එකක් upload කර පද්ධතිය මගින් Storage IC විස්තර පරීක්ෂා කරන්න.")
 
-# භාෂාව තේරීම (Main Screen)
+# භාෂාව තේරීම
 language = st.radio("Language / භාෂාව තෝරන්න:", ["English", "සිංහල"], horizontal=True)
 
-# API Key එක Enter කිරීමට Box එකක්
+# API Key එක Enter කිරීමට Box එක
 api_key_input = st.text_input("Enter your Gemini API Key:", type="password", help="ඔයාගේ Gemini API Key එක මෙතැනට ඇතුළත් කරන්න.")
 
 uploaded_file = st.file_uploader("Board photo එකක් තෝරන්න...", type=["jpg", "jpeg", "png"])
@@ -42,7 +42,7 @@ if uploaded_file:
                     ඔබ ස්වයංක්‍රීය හාඩ්වෙයාර් පරීක්ෂණ දත්ත පද්ධතියකි. මෙම motherboard ඡායාරූපය පරීක්ෂා කර පහත රීති අකුරටම අනුගමනය කරන්න:
                     1. කිසිදු AI හෝ සංවාද ශෛලියේ වාක්‍ය (උදා: 'ඡායාරූපයට අනුව', 'මම AI එකක් ලෙස', 'මෙන්න විස්තර') භාවිතා නොකරන්න.
                     2. ඡායාරූපය තුළ NAND/eMMC/UFS storage chip එක නොමැති නම්, මෙම වාක්‍යය පමණක් ලබාදෙන්න: "[දෝෂයයි] Storage Chip එක මෙහි නොමැත."
-                    3. Storage chip එක තිබුණද එහි IC අංකය/අකුරු පැහැදිලි නැතිනම් හෝ කියවිය නොහැකි නම්, මෙම වාක්‍යය පමණක් ලබාදෙන්න: "[අවධානයට] Storage Chip එක පෙනෙන්නට ඇත, නමුත් IC අංකය පැහැදිලිව පෙනෙන්නට නොOrganization."
+                    3. Storage chip එක තිබුණද එහි IC අංකය/අකුරු පැහැදිලි නැතිනම් හෝ කියවිය නොහැකි නම්, මෙම වාක්‍යය පමණක් ලබාදෙන්න: "[අවධානයට] Storage Chip එක පෙනෙන්නට ඇත, නමුත් IC අංකය පැහැදිලිව පෙනෙන්නට නොමැත."
                     4. Chip එක සහ අංකය පැහැදිලිව පෙනේ නම්, පහත විස්තර පමණක් තාක්ෂණික වාර්තාවක් ලෙස ලබාදෙන්න:
                        - IC Part Number
                        - නිෂ්පාදකයා (Manufacturer)
@@ -62,3 +62,4 @@ if uploaded_file:
                 st.error(f"System Error: {e}")
     else:
         st.warning("කරුණාකර IC පරීක්ෂා කිරීමට ප්‍රථම Gemini API Key එක ඇතුළත් කරන්න.")
+

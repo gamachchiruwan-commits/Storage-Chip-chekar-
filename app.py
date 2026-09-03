@@ -1,5 +1,5 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 import time
 from PIL import Image
 
@@ -49,32 +49,32 @@ if uploaded_file:
 
             with st.spinner(sp_text):
                 try:
-                    client = genai.Client(api_key=api_key_input.strip())
+                    # Configure API Key
+                    genai.configure(api_key=api_key_input.strip())
+                    
+                    # Absolute Most Stable Model Setup
+                    model = genai.GenerativeModel('gemini-1.5-flash')
                     
                     response = None
                     last_error = None
                     
-                    # Google API එකෙන් ඉල්ලන එකම නිවැරදි Model Name එක
+                    # Auto Retry System for 503 Overload
                     for attempt in range(3):
                         try:
-                            response = client.models.generate_content(
-                                model='gemini-3.6-flash',
-                                contents=[prompt, image]
-                            )
+                            response = model.generate_content([prompt, image])
                             if response and response.text:
                                 break
                         except Exception as err:
                             last_error = err
-                            time.sleep(2)
+                            time.sleep(3)
 
                     if response and response.text:
                         st.success("Scan Complete!" if language == "English" else "පරික්ෂාව සාර්ථකයි!")
                         st.markdown(response.text)
                     else:
-                        st.error(f"System Error: {last_error}")
+                        st.error(f"Error: {last_error}")
                         
                 except Exception as e:
                     st.error(f"Initialization Error: {e}")
     else:
         st.warning("කරුණාකර IC පරීක්ෂා කිරීමට ප්‍රථම Gemini API Key එක ඇතුළත් කරන්න.")
-

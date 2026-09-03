@@ -49,16 +49,15 @@ if uploaded_file:
 
             with st.spinner(sp_text):
                 try:
-                    # Configure API Key
                     genai.configure(api_key=api_key_input.strip())
                     
-                    # Absolute Most Stable Model Setup
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    # google-generativeai SDK එකට හරියන නිවැරදිම Model එක
+                    model = genai.GenerativeModel('gemini-2.0-flash')
                     
                     response = None
                     last_error = None
                     
-                    # Auto Retry System for 503 Overload
+                    # Server busy වීමක් වුණොත් Auto-retry වෙන කොටස
                     for attempt in range(3):
                         try:
                             response = model.generate_content([prompt, image])
@@ -66,7 +65,7 @@ if uploaded_file:
                                 break
                         except Exception as err:
                             last_error = err
-                            time.sleep(3)
+                            time.sleep(2)
 
                     if response and response.text:
                         st.success("Scan Complete!" if language == "English" else "පරික්ෂාව සාර්ථකයි!")

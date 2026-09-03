@@ -1,7 +1,7 @@
 import streamlit as st
 from google import genai
-from PIL import Image
 import time
+from PIL import Image
 
 st.set_page_config(page_title="Hardware Diagnostic System", page_icon="🔬")
 st.title("🔬 Phone Board IC Diagnostic System")
@@ -17,13 +17,14 @@ uploaded_file = st.file_uploader("Board photo එකක් තෝරන්න...
 
 if uploaded_file:
     image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Board Photo", use_container_width=True)
+    # Streamlit Warning නැති කිරීමට සරලව රූපය පෙන්වීම
+    st.image(image, caption="Uploaded Board Photo")
     
     if api_key_input:
         btn_label = "Scan IC Details" if language == "English" else "IC විස්තර පරීක්ෂා කරන්න"
         
         if st.button(btn_label):
-            client = genai.Client(api_key=api_key_input.strip())
+            sp_text = "Scanning IC Database..." if language == "English" else "IC දත්ත පරීක්ෂා කරමින් පවතී..."
             
             if language == "English":
                 prompt = """
@@ -49,33 +50,40 @@ if uploaded_file:
                    - ධාරිතාව (Storage Capacity in GB)
                    - RAM විස්තර (පෙනේ නම් පමණක්)
                 """
-            
-            sp_text = "Scanning IC Database..." if language == "English" else "IC දත්ත පරීක්ෂා කරමින් පවතී..."
+
             with st.spinner(sp_text):
-                # Retry logic for Server Overload (503)
-                models_to_try = ['gemini-2.5-flash', 'gemini-1.5-flash']
-                response = None
-                last_error = None
+                try:
+                    client = genai.Client(api_key=api_key_input.strip())
+                    
+                    response = None
+                    last_error = None
+                    
+                    # Valid models
+                    models = ['gemini-2.5-flash', 'gemini-2.0-flash']
+                    
+                    # 503 Server overload වලදී Auto-retry වෙන Loop එක
+                    for model_name in models:
+                        for attempt in range(3): 
+                            try:
+                                response = client.models.generate_content(
+                                    model=model_name,
+                                    contents=[prompt, image]
+                                )
+                                if response and response.text:
+                                    break
+                            except Exception as err:
+                                last_error = err
+                                time.sleep(2) # Server busy නම් තත්පර 2ක් ඉඳලා Auto Retry කරනවා
+                        if response and response.text:
+                            break
 
-                for model_name in models_to_try:
-                    for attempt in range(2): # Try twice per model
-                        try:
-                            response = client.models.generate_content(
-                                model=model_name,
-                                contents=[prompt, image]
-                            )
-                            if response:
-                                break
-                        except Exception as e:
-                            last_error = e
-                            time.sleep(2) # Wait 2 seconds before retry
-                    if response:
-                        break
-
-                if response:
-                    st.success("Scan Complete!" if language == "English" else "පරික්ෂාව සාර්ථකයි!")
-                    st.markdown(response.text)
-                else:
-                    st.error(f"System Error: {last_error}")
+                    if response and response.text:
+                        st.success("Scan Complete!" if language == "English" else "පරික්ෂාව සාර්ථකයි!")
+                        st.markdown(response.text)
+                    else:
+                        st.error(f"System Error: {last_error}")
+                        
+                except Exception as e:
+                    st.error(f"Initialization Error: {e}")
     else:
         st.warning("කරුණාකර IC පරීක්ෂා කිරීමට ප්‍රථම Gemini API Key එක ඇතුළත් කරන්න.")

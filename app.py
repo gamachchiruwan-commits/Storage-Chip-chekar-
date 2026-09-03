@@ -53,7 +53,7 @@ if uploaded_file:
                 sp_text = "Scanning IC Database..." if language == "English" else "IC දත්ත පරීක්ෂා කරමින් පවතී..."
                 with st.spinner(sp_text):
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model='gemini-3.6-flash',
                         contents=[prompt, image]
                     )
                     st.success("Scan Complete!" if language == "English" else "පරික්ෂාව සාර්ථකයි!")

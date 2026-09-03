@@ -51,27 +51,42 @@ if uploaded_file:
                 try:
                     genai.configure(api_key=api_key_input.strip())
                     
-                    # google-generativeai SDK එකට හරියන නිවැරදිම Model එක
-                    model = genai.GenerativeModel('gemini-2.0-flash')
+                    # 1. API එකේ වැඩ කරන Flash Models මොනවාදැයි සෙවීම
+                    active_models = []
+                    for m in genai.list_models():
+                        if 'generateContent' in m.supported_generation_methods and 'flash' in m.name:
+                            active_models.append(m.name)
                     
-                    response = None
-                    last_error = None
-                    
-                    # Server busy වීමක් වුණොත් Auto-retry වෙන කොටස
-                    for attempt in range(3):
-                        try:
-                            response = model.generate_content([prompt, image])
-                            if response and response.text:
-                                break
-                        except Exception as err:
-                            last_error = err
-                            time.sleep(2)
+                    if not active_models:
+                        # Flash නැත්නම් වෙනත් ඕනෑම generateContent model එකක් ගනී
+                        for m in genai.list_models():
+                            if 'generateContent' in m.supported_generation_methods:
+                                active_models.append(m.name)
 
-                    if response and response.text:
-                        st.success("Scan Complete!" if language == "English" else "පරික්ෂාව සාර්ථකයි!")
-                        st.markdown(response.text)
+                    if not active_models:
+                        st.error("ඔබගේ API Key එක සඳහා සක්‍රීය Models කිසිවක් හමු නොවීය.")
                     else:
-                        st.error(f"Error: {last_error}")
+                        # 2. හමු වූ පළමු සක්‍රීය Model එකෙන් Request එක යැවීම
+                        selected_model_name = active_models[0]
+                        model = genai.GenerativeModel(selected_model_name)
+                        
+                        response = None
+                        last_error = None
+                        
+                        for attempt in range(3):
+                            try:
+                                response = model.generate_content([prompt, image])
+                                if response and response.text:
+                                    break
+                            except Exception as err:
+                                last_error = err
+                                time.sleep(2)
+
+                        if response and response.text:
+                            st.success(f"Scan Complete! (Model: {selected_model_name})")
+                            st.markdown(response.text)
+                        else:
+                            st.error(f"Error: {last_error}")
                         
                 except Exception as e:
                     st.error(f"Initialization Error: {e}")

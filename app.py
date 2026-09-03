@@ -17,7 +17,6 @@ uploaded_file = st.file_uploader("Board photo එකක් තෝරන්න...
 
 if uploaded_file:
     image = Image.open(uploaded_file)
-    # Streamlit Warning නැති කිරීමට සරලව රූපය පෙන්වීම
     st.image(image, caption="Uploaded Board Photo")
     
     if api_key_input:
@@ -57,25 +56,21 @@ if uploaded_file:
                     
                     response = None
                     last_error = None
+                    max_attempts = 3  # Server Busy වුණොත් ස්වයංක්‍රීයව උත්සාහ කරන වාර ගණන
                     
-                    # Valid models
-                    models = ['gemini-2.5-flash', 'gemini-2.0-flash']
-                    
-                    # 503 Server overload වලදී Auto-retry වෙන Loop එක
-                    for model_name in models:
-                        for attempt in range(3): 
-                            try:
-                                response = client.models.generate_content(
-                                    model=model_name,
-                                    contents=[prompt, image]
-                                )
-                                if response and response.text:
-                                    break
-                            except Exception as err:
-                                last_error = err
-                                time.sleep(2) # Server busy නම් තත්පර 2ක් ඉඳලා Auto Retry කරනවා
-                        if response and response.text:
-                            break
+                    for attempt in range(max_attempts):
+                        try:
+                            # Gemini 2.5 Flash Model එක භාවිතා කිරීම
+                            response = client.models.generate_content(
+                                model='gemini-2.5-flash',
+                                contents=[prompt, image]
+                            )
+                            if response and response.text:
+                                break  # සාර්ථක වූ සැනින් Loop එකෙන් පිටවේ
+                        except Exception as err:
+                            last_error = err
+                            # Server Busy (503) නම් තත්පර 2ක් ඉඳලා ස්වයංක්‍රීයව නැවත උත්සාහ කරයි
+                            time.sleep(2)
 
                     if response and response.text:
                         st.success("Scan Complete!" if language == "English" else "පරික්ෂාව සාර්ථකයි!")
